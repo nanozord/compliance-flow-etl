@@ -33,13 +33,12 @@ import hashlib
 import pandas as pd
 import os
 import sys
+import datetime
 
 def salt_and_hash(text, salt=os.getenv('COMPLIANCE_SALT', 'DEFAULT_STATIC_SALT')):
     text_str = str(text) if text is not None else ""
     active_salt = salt if (salt and salt != 'DEFAULT_STATIC_SALT') else "EMERGENCY_PROTECTION_SALT"
     return hashlib.sha256((text_str + active_salt).encode()).hexdigest()
-
-import datetime
 
 def get_30_day_price_change(ticker_symbol, trade_date_str):
     """Calculates the percentage change in stock price 30 days after a trade."""
@@ -65,7 +64,7 @@ def get_30_day_price_change(ticker_symbol, trade_date_str):
         
     except Exception as e:
         return None
-       
+        
 def test_masking_integrity(df):
     """Unit Test: Verifies complete PII removal"""
     forbidden = ["Cook", "Musk", "Nadella", "CEO", "Director", "President", "Officer"] 
@@ -97,6 +96,19 @@ def main():
             
             if df is not None and isinstance(df, pd.DataFrame) and not df.empty:
                 df['Ticker'] = ticker_symbol
+                
+                # --- PHASE 2: ML LABELING ---
+                # Assuming the API returns a 'Start Date' or 'Date' column
+                date_col = 'Start Date' if 'Start Date' in df.columns else 'Date' if 'Date' in df.columns else None
+                
+                if date_col:
+                    print(f"Calculating 30-day price deltas for {ticker_symbol}...")
+                    # Apply the function to each row
+                    df['30_Day_Return'] = df.apply(lambda row: get_30_day_price_change(row['Ticker'], row[date_col]), axis=1)
+                    
+                    # Create the ML Target Label: 1 if it made more than 5%, else 0
+                    df['ML_Target_Signal'] = df['30_Day_Return'].apply(lambda x: 1 if x is not None and x > 0.05 else 0)
+                
                 combined_data.append(df)
 
         if not combined_data:
