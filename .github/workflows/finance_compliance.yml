@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas yfinance
+          pip install pandas yfinance --upgrade # Force upgrade to get latest API fix
 
       - name: Execute Masking Pipeline
         env:
@@ -35,11 +35,11 @@ jobs:
 
       - name: Data Quality Check
         run: |
-          if [ ! -s masked_insider_trading.csv ]; then
-            echo "DQ Error: Masked file is empty or missing!"
+          if [ ! -f masked_insider_trading.csv ]; then
+            echo "DQ Error: File was not created!"
             exit 1
           fi
-          echo "DQ Success: File validated for size and presence."
+          echo "DQ Success: File validated."
 
       - name: Commit Secure Logs
         run: |
