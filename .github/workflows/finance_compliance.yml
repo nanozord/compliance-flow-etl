@@ -27,15 +27,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas yfinance --upgrade
-          pip show yfinance # Diagnostic step to see current version
 
       - name: Execute Masking Pipeline
         env:
           COMPLIANCE_SALT: ${{ secrets.COMPLIANCE_SALT }}
         run: python compliance_etl.py
 
+      - name: Verify Output
+        run: |
+          if [ -f masked_insider_trading.csv ]; then
+            echo "Success: CSV generated with $(wc -l < masked_insider_trading.csv) lines."
+            ls -lh masked_insider_trading.csv
+          else
+            echo "Warning: No CSV generated during this run."
+          fi
+
       - name: Commit Secure Logs
-        if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -43,4 +50,6 @@ jobs:
             git add masked_insider_trading.csv
             git commit -m "compliance: automated masking sync [skip ci]" || echo "No changes"
             git push
+          else
+            echo "Nothing to commit."
           fi
