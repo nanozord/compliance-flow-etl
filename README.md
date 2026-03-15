@@ -4,6 +4,7 @@
 **Compliance Flow ETL** is a production-grade data engineering pipeline designed to ingest high-sensitivity SEC Insider Trading disclosures while maintaining 100% PII (Personally Identifiable Information) security through automated masking and validation.
 
 ![Compliance Dashboard](dashboard_preview.png)
+[Download the interactive Power BI (.pbix) file here](Compliance_Flow_Dashboard.pbix)
 
 ## Tech Stack
 * **Language:** Python 3.10 (Pandas, Hashlib)
